@@ -28,7 +28,11 @@
 
 (defn part-one
   []
-  (str (dec (count (react (read-input)))) " units remain after all reactions."))
+  (-> (read-input)
+      react
+      count
+      dec
+      (str " units remain after all reactions.")))
 
 (defn catalyse
   [string]
@@ -51,4 +55,7 @@
   []
   (let [polymer (read-input)
         catalysed-polymer (catalyse polymer)]
-    (str (dec (count catalysed-polymer)) " units remain after the catalyzed reactions.")))
+    (-> (catalysed-polymer)
+        count
+        dec
+        (str " units remain after all the catalysed reactions."))))
