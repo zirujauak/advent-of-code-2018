@@ -53,7 +53,7 @@
   []
   (let [polymer (read-input)
         catalysed-polymer (catalyse polymer)]
-    (-> (catalysed-polymer)
+    (-> catalysed-polymer
         count
         dec
         (str " units remain after all the catalysed reactions."))))
