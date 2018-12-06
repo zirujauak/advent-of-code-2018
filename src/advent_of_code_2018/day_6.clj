@@ -27,12 +27,8 @@
 
 (defn calculate-distance
   [coord-1 coord-2]
-  (let [d-x (if (> (:x coord-1) (:x coord-2))
-              (- (:x coord-1) (:x coord-2))
-              (- (:x coord-2) (:x coord-1)))
-        d-y (if (> (:y coord-1) (:y coord-2))
-              (- (:y coord-1) (:y coord-2))
-              (- (:y coord-2) (:y coord-1)))]
+  (let [d-x (Math/abs (- (:x coord-1) (:x coord-2)))
+        d-y (Math/abs (- (:y coord-1) (:y coord-2)))]
     (+ d-x d-y)))
 
 (defn calculate-coord-distances
@@ -144,3 +140,35 @@ the calculation is cut off."
   (let [data (read-input)
         result-map (find-largest-points data (find-owned-points data))]
     (str "The largest owned area is " (val (first result-map)))))
+
+(defn calculate-total-distance
+  [x y coord-set]
+  (let [subject-coord {:x x :y y}]
+    (loop [coord-iter coord-set
+           distance 0]
+      (if (empty? coord-iter)
+        distance
+        (recur (rest coord-iter)
+               (+ distance (calculate-distance subject-coord (first coord-iter))))))))
+
+(defn calculate-region
+  [max-distance coord-set]
+  (let [max-x (max-coord coord-set :x)
+        max-y (max-coord coord-set :y)]
+    (loop [x 0
+           y 0
+           region-set #{}]
+      (if (> x max-x)
+        region-set
+        (if (> y max-y)
+          (recur (inc x) 0 region-set)
+          (recur x (inc y)
+                 (let [distance (calculate-total-distance x y coord-set)]
+                   (if (< distance max-distance)
+                     (conj region-set {:x x :y y})
+                     region-set))))))))
+
+(defn part-two
+  []
+  (let [region (calculate-region 10000 (read-input))]
+    (str "The 'safe' region size is " (count region))))
