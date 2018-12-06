@@ -1,0 +1,146 @@
+(ns advent-of-code-2018.day-6
+  (:require [advent-of-code-2018.util :as util]
+            [clojure.string :as s]))
+
+(defn parse-line
+  [line]
+  (let [coords (s/split line #", ")]
+    {:x (Integer/parseInt (nth coords 0))
+     :y (Integer/parseInt (nth coords 1))}))
+
+(defn read-input
+  []
+  (->> (util/read-file-lines "day-6-input.txt")
+       (reduce #(conj %1 (parse-line %2)) #{})))
+
+(defn max-coord
+  [coords key]
+  (loop [coord-iter coords
+         max-n 0]
+    (if (empty? coord-iter)
+      max-n
+      (recur (rest coord-iter)
+             (let [n (get (first coord-iter) key)]
+               (if (> n max-n)
+                 n
+                 max-n))))))
+
+(defn calculate-distance
+  [coord-1 coord-2]
+  (let [d-x (if (> (:x coord-1) (:x coord-2))
+              (- (:x coord-1) (:x coord-2))
+              (- (:x coord-2) (:x coord-1)))
+        d-y (if (> (:y coord-1) (:y coord-2))
+              (- (:y coord-1) (:y coord-2))
+              (- (:y coord-2) (:y coord-1)))]
+    (+ d-x d-y)))
+
+(defn calculate-coord-distances
+  "Calculate the distance from a given coordinate to the set of coordinates. If a distance of 0 is found then 
+the calculation is cut off."
+  [coord-x coord-y coord-set]
+  (let [coord-prime {:x coord-x :y coord-y}]
+    (loop [coord-iter coord-set
+           distance-map {}
+           abort false]
+      (if (empty? coord-iter)
+        (into (sorted-map) distance-map)
+        (recur (rest coord-iter)
+               (let [coord (first coord-iter)
+                     distance (calculate-distance coord-prime coord)]
+                 (assoc distance-map distance
+                        (conj (get distance-map distance) (str (:x coord) "," (:y coord)))))
+               (contains? distance-map 0))))))
+
+(defn find-infinite-owner-for-coord
+  [coord-set distance-seq]
+  (if (= (count distance-seq) 1)
+    (let [coord-string (first distance-seq)
+          coord-elems (s/split coord-string #",")
+          coord {:x (Integer/parseInt (nth coord-elems 0)) :y (Integer/parseInt (nth coord-elems 1))}]
+      (conj coord-set coord))
+    coord-set))
+
+(defn find-infinite-coords
+  [coord-set]
+  (let [max-x (max-coord coord-set :x)
+        max-y (max-coord coord-set :y)]
+    (loop [x 0
+           y 0
+           infinite-coords #{}]
+      (if (and (> x max-x) (> y max-y))
+        infinite-coords
+        (recur (if (<= x max-x) (inc x) x)
+               (if (<= y max-y) (inc y) y)
+               (let [distance-map-1 (calculate-coord-distances x 0 coord-set)
+                     distance-map-2 (calculate-coord-distances 0 y coord-set)
+                     distance-map-3 (calculate-coord-distances x max-y coord-set)
+                     distance-map-4 (calculate-coord-distances max-x y coord-set)
+                     closest-coords-1 (val (first distance-map-1))
+                     closest-coords-2 (val (first distance-map-2))
+                     closest-coords-3 (val (first distance-map-3))
+                     closest-coords-4 (val (first distance-map-4))]
+                 (-> infinite-coords
+                     (find-infinite-owner-for-coord closest-coords-1)
+                     (find-infinite-owner-for-coord closest-coords-2)
+                     (find-infinite-owner-for-coord closest-coords-3)
+                     (find-infinite-owner-for-coord closest-coords-4))))))))
+
+(defn find-owner-for-point
+  [x y coord-set]
+  (let [coord-point {:x x :y y}]
+    (loop [coord-iter coord-set
+           min-distance 9999999
+           closest-coord nil]
+      (if (empty? coord-iter)
+        closest-coord
+        (let [coord (first coord-iter)
+              distance (calculate-distance coord-point coord)]
+          (cond
+            (< distance min-distance)
+            (recur (rest coord-iter)
+                   distance
+                   coord)
+
+            (= distance min-distance)
+            (recur (rest coord-iter)
+                   distance
+                   nil)
+
+            :else
+            (recur (rest coord-iter)
+                   min-distance
+                   closest-coord)))))))
+
+(defn find-owners
+  [coord-set]
+  (let [max-x (max-coord coord-set :x)
+        max-y (max-coord coord-set :y)]
+    (loop [x 0
+           y 0
+           owner-map {}]
+      (if (= x max-x)
+        owner-map
+        (if (= y max-y)
+          (recur (inc x) 0 owner-map)
+          (let [owner (find-owner-for-point x y coord-set)
+                owner-key (if (nil? owner) nil (str (:x owner) "," (:y owner)))
+                count (get owner-map owner-key 0)
+                update-map (if (nil? owner) owner-map (assoc owner-map owner-key (inc count)))]
+            (recur x (inc y) update-map)))))))
+
+(defn find-largest-points
+  [coord-set owner-map]
+  (let [infinite-coords (find-infinite-coords coord-set)
+        owner-map (find-owners coord-set)
+        candidate-map (reduce #(dissoc %1 (str (get %2 :x) "," (get %2 :y))) owner-map infinite-coords)]
+    (into (sorted-map-by (fn [k1 k2]
+                           (compare [(get candidate-map k2) k2]
+                                    [(get candidate-map k1) k1])))
+          candidate-map)))
+
+(defn part-one
+  []
+  (let [data (read-input)
+        result-map (find-largest-points data (find-owned-points data))]
+    (str "The largest owned area is " (val (first result-map)))))
