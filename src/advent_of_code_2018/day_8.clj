@@ -27,6 +27,19 @@
     (reset! file-position (+ n @file-position))
     result))
 
+(defn calculate-node-value
+  [child-seq metadata-seq]
+  (if (empty? child-seq)
+    (reduce + metadata-seq)
+    (loop [i metadata-seq
+           value 0]
+      (if (empty? i)
+        value
+        (let [node (get child-seq (dec (first i)))]
+          (if (nil? node)
+            (recur (rest i) value)
+            (recur (rest i) (+ value (:node-value node)))))))))
+
 (defn parse-node
   [file-seq]
   (let [n-children (nth file-seq (fp))
@@ -37,8 +50,13 @@
                      child-seq
                      (recur (inc i)
                             (conj child-seq (parse-node file-seq)))))
-        metadata (read-metadata file-seq n-metadata)]
-    {:n-children n-children :children children :n-metadata n-metadata :metadata metadata}))
+        metadata (read-metadata file-seq n-metadata)
+        node-value (calculate-node-value children metadata)]
+    {:n-children n-children
+     :children children
+     :n-metadata n-metadata
+     :metadata metadata
+     :node-value node-value}))
 
 (defn part-one
   []
@@ -47,4 +65,10 @@
   (let [file-seq (read-input)]
     (parse-node file-seq)
     @checksum))
+
+(defn part-two
+  []
+  (reset! file-position 0)
+  (let [node-map (-> (read-input) (parse-node))]
+    (:node-value node-map)))
 
