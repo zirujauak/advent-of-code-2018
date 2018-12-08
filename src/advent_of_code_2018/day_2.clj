@@ -1,32 +1,25 @@
 (ns advent-of-code-2018.day-2
-  (:require [clojure.java.io :as io]
-            [advent-of-code-2018.util :as util]))
+  (:require [advent-of-code-2018.util :as util]
+            [clojure.data :as data]
+            [clojure.string :as s]))
 
-
-(defn read-input
-  []
-  (util/read-file-lines "day-2-input.txt"))
-
-(defn check-letter-count
-  [string target-count]
-  (loop [letter-iter string
-         matched? false]
-    (if (or matched? (empty? letter-iter))
-      matched?
-      (recur (rest letter-iter)
-             (= target-count (count (filter #(= (str %) (str (first letter-iter))) string)))))))
+(defn has-letter-n-times
+  [line n]
+  (if (empty? (filter #(= n (val %)) (frequencies line)))
+    0
+    1))
 
 (defn part-one
   []
-  (let [lines (read-input)]
+  (let [lines (util/read-file-as-lines 2)]
     (loop [line-iter lines
            two-letter 0
            three-letter 0]
       (if (empty? line-iter)
         (* two-letter three-letter)
         (recur (rest line-iter)
-               (if (check-letter-count (first line-iter) 2) (inc two-letter) two-letter)
-               (if (check-letter-count (first line-iter) 3) (inc three-letter) three-letter))))))
+               (+ two-letter (has-letter-n-times (first line-iter) 2))
+               (+ three-letter (has-letter-n-times (first line-iter) 3)))))))
 
 (defn check-differences
   [string-1 string-2]
@@ -43,22 +36,31 @@
                (conj diff-pos index))
              (inc index)))))
 
+(defn check-for-n-differences
+  [string-1 string-2 n]
+  (let [diff (data/diff (seq string-1) (seq string-2))
+        diff-count (count (filter #(not (nil? %)) (first diff)))]
+    (if (= n diff-count)
+      (s/join (nth diff 2)))))
+
+(defn compare-string-with-sequence
+  [string remaining-seq]
+  (loop [comp-iter remaining-seq]
+    (if (empty? comp-iter)
+      nil
+      (let [string (check-for-n-differences string (first comp-iter) 1)]
+        (if-not (nil? string)
+          string
+          (recur (rest comp-iter)))))))
+
 (defn part-two
   []
-  (let [lines (read-input)]
-    (loop [line-iter lines
-           result nil]
-      (if (or (not (nil? result)) (empty? line-iter))
-        result
-        (recur (rest line-iter)
-               (let [string-a (first line-iter)]
-                 (loop [comp-iter (rest line-iter)
-                        comp-result nil]
-                   (if (or (not (nil? comp-result)) (empty? comp-iter))
-                     comp-result
-                     (recur (rest comp-iter)
-                       (let [string-b (first comp-iter)
-                             diff-pos (check-differences string-a string-b)]
-                         (if (= (count diff-pos) 1)
-                           (str (subs string-a 0 (first diff-pos)) (subs string-a (inc (first diff-pos)))))))))))))))
+  (let [lines (sort (util/read-file-as-lines 2))]
+    (loop [line-iter lines]
+      (if (empty? line-iter)
+        nil
+        (let [common-string (compare-string-with-sequence (first line-iter) (rest line-iter))]
+          (if (not (nil? common-string))
+            common-string
+            (recur (rest line-iter))))))))
 
