@@ -1,6 +1,5 @@
 (ns advent-of-code-2018.day-1
-  (:require [clojure.java.io :as io]
-            [advent-of-code-2018.util :as util]))
+  (:require [advent-of-code-2018.util :as util]))
 
 (defn read-input
   []
