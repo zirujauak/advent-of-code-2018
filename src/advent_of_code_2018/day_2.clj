@@ -21,21 +21,6 @@
                (+ two-letter (has-letter-n-times (first line-iter) 2))
                (+ three-letter (has-letter-n-times (first line-iter) 3)))))))
 
-(defn check-differences
-  [string-1 string-2]
-  (loop [string-1-iter string-1
-         string-2-iter string-2
-         diff-pos []
-         index 0]
-    (if (empty? string-1-iter)
-      diff-pos
-      (recur (rest string-1-iter)
-             (rest string-2-iter)
-             (if (= (first string-1-iter) (first string-2-iter))
-               diff-pos
-               (conj diff-pos index))
-             (inc index)))))
-
 (defn check-for-n-differences
   [string-1 string-2 n]
   (let [diff (data/diff (seq string-1) (seq string-2))
