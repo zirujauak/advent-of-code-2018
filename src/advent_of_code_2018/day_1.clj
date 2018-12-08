@@ -4,25 +4,24 @@
 
 (defn read-input
   []
-  (->> (util/read-file-lines "day-1-input.txt")
+  (->> 1
+       util/read-file-as-lines
        (reduce #(conj %1 (Integer/parseInt %2)) [])))
 
 (defn part-one
   []
-  (let [lines (read-input)]
-    (reduce #(+ %2 %1) 0 lines)))
+  (let [frequency-seq (read-input)]
+    (reduce + frequency-seq)))
 
 (defn part-two
   []
   (let [lines (cycle (read-input))]
     (loop [frequency-iter lines
-           duplicate? false
            frequency-set #{}
-           frequency 0]
-      (if duplicate?
-        frequency
-        (let [sum (+ frequency (first frequency-iter))]
-          (recur (rest frequency-iter)
-                   (contains? frequency-set sum)
+           frequency-sum 0]
+        (let [sum (+ frequency-sum (first frequency-iter))]
+          (if (contains? frequency-set sum)
+            sum
+            (recur (rest frequency-iter)
                    (conj frequency-set sum)
                    sum))))))
