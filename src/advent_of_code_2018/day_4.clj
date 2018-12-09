@@ -29,7 +29,7 @@
 
 (defn read-input
   []
-  (->> (util/read-file-lines "day-4-input.txt")
+  (->> (util/read-file-as-lines 4)
        (reduce #(conj %1 (parse-line %2)) [])
        (sort #(compare (:timestamp %1) (:timestamp %2)))))
 

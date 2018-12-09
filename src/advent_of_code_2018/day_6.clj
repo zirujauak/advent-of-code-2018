@@ -10,7 +10,7 @@
 
 (defn read-input
   []
-  (->> (util/read-file-lines "day-6-input.txt")
+  (->> (util/read-file-as-lines 6)
        (reduce #(conj %1 (parse-line %2)) #{})))
 
 (defn max-coord

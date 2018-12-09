@@ -10,7 +10,7 @@
 
 (defn read-input
   []
-  (->> (util/read-file-lines "day-7-input.txt")
+  (->> (util/read-file-as-lines 7)
        (reduce #(conj %1 (parse-line %2)) [])))
 
 (defn map-dependencies

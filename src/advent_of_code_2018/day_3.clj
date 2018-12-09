@@ -11,7 +11,7 @@
  
 (defn read-input
   []
-  (->> (util/read-file-lines "day-3-input.txt")
+  (->> (util/read-file-as-lines 3)
        (reduce #(conj %1 (parse-line %2)) [])))
 
 (defn within?

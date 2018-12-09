@@ -3,12 +3,6 @@
             [advent-of-code-2018.util :as util]
             [clojure.string :as s]))
 
-(defn read-input
-  []
-  (-> (io/resource "day-5-input.txt")
-      io/reader
-      slurp))
-
 (defn react
   [string]
   (let [chars "abcdefghijklmnopqrstuvwxyz"]
@@ -27,7 +21,7 @@
 
 (defn part-one
   []
-  (-> (read-input)
+  (-> (util/read-file 5)
       react
       count
       dec
@@ -51,7 +45,7 @@
 
 (defn part-two
   []
-  (-> (read-input)
+  (-> (util/read-input 5)
       catalyse
       count
       dec

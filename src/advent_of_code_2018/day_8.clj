@@ -6,9 +6,7 @@
 (defn read-input
   []
   (reduce #(conj %1 (Integer/parseInt %2)) []
-          (-> (io/resource "day-8-input.txt")
-              io/reader
-              slurp
+          (-> (util/read-file 8)
               (s/split #"\s"))))
 
 (def file-position (atom 0))
